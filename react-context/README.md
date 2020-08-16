@@ -1,7 +1,5 @@
 # `React` 中 `Context` 的使用
 
-[[TOC]]
-
 ## `Context` 的创建
 
 ```js
