@@ -1,5 +1,9 @@
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
+// import React, { Component } from 'react';
+// import ReactDOM from 'react-dom';
+
+import React, { Component } from './z-react/react';
+import ReactDOM from './z-react/react-dom';
+
 import './index.css';
 
 class ClassComp extends Component {
