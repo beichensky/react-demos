@@ -1,5 +1,8 @@
-import React, { Component } from 'react';
-import ReactDOM from 'react-dom';
+// import React, { Component } from 'react';
+// import ReactDOM from 'react-dom';
+
+import React, { Component } from './z-react/react';
+import ReactDOM from './z-react/react-dom';
 
 import './index.css';
 
@@ -31,13 +34,8 @@ FunComponent.defaultProps = {
     name: 'function',
 };
 
-const todoList = ['吃饭', '睡觉', '敲代码'];
-
 const App = () => (
     <div className="box border">
-        {todoList.map(i => (
-            <li key={i}>{i}</li>
-        ))}
         <ClassComp name="Jack" />
         <FunComponent name="Lily" />
         <button onClick={() => alert('Hello Fiber')}>弹出提示</button>
