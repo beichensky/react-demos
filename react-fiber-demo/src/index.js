@@ -2,7 +2,7 @@
 // import ReactDOM from 'react-dom';
 
 import React, { Component } from './z-react/react';
-import ReactDOM from './z-react/react-dom';
+import ReactDOM, { useState } from './z-react/react-dom';
 
 import './index.css';
 
@@ -42,4 +42,25 @@ const App = () => (
     </div>
 );
 
-ReactDOM.render(<App />, document.getElementById('root'));
+const StateApp = () => {
+    const [count, setCount] = useState(0);
+
+    console.log('render');
+
+    return (
+        <div className="box border">
+            <p>count: {count}</p>
+            <span>{count % 2 === 0 ? '偶数' : '奇数'}</span>
+            <div>
+                {count % 2 === 0 ? (
+                    <span className="blue">even</span>
+                ) : (
+                    <strong className="gray">odd</strong>
+                )}
+            </div>
+            <button onClick={() => setCount(count + 1)}>increment</button>
+        </div>
+    );
+};
+
+ReactDOM.render(<StateApp />, document.getElementById('root'));
