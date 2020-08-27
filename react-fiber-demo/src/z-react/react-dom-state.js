@@ -1,27 +1,19 @@
 const FRAGMENT = 11;
-const PLACEMENT = 'PLACEMENT'; // 新增
-const UPDATE = 'UPDATE'; // 更新
-const DELETION = 'DELETION'; // 删除
+const PLACEMENT = 'PLACEMENT';  // 新增
+const UPDATE = 'UPDATE';        // 更新
+const DELETION = 'DELETION'     // 删除
 
 /**
  * fiber 属性
  *  type: 节点类型
  *  key: key 值
  *  props: 组件属性
- *  index: fiber 在当前层级的位置
  *  child: 第一个子 fiber
  *  node: 对应的真实 DOM
  *  base: 对应的上一次的 fiber
  *  return: 父 fiber
  *  sibling: 下一个兄弟 fiber
  *  effectTag: 操作类型，新增、更新、删除
- */
-
-/**
- * 注意点：
- *  1、生成 map 结构时，是使用 oldFiber 生成
- *  2、查找 map 中数据时，若 newChild 中没有 key，则使用 newIdx 查找，而不是 newChild.index，因为 newChild 没有 index 属性
- *  3、找到 map 中数据，匹配后删除，避免重复查找
  */
 
 // 下一个将被执行的 fiber
@@ -31,9 +23,9 @@ let wipRoot = null;
 
 // 存放上一次的 root fiber
 let currentRootFiber = null;
-// 记录当前执行的 function 组件的 fiber
-let wipFunctionFiber = null;
-// 用来存储将要被删除的 fiber
+// 记录当前执行的 function fiber
+let wipFunctionFible = null;
+// 用来储存需要被删除的 fiber
 let deletions = [];
 
 /**
@@ -131,7 +123,7 @@ function updateFunctionComponent(fiber) {
     // 将 hook 属性挂载到 function fiber 上
     fiber.hooks = [];
     fiber.hookIndex = 0;
-    wipFunctionFiber = fiber;
+    wipFunctionFible = fiber;
 
     const { type, props } = fiber;
     const vNode = type(props);
@@ -212,50 +204,6 @@ function updateNode(node, prevProps, nextProps) {
 }
 
 /**
- * 为新的 fiber 设置 index 属性
- * 返回上一次 fiber 的位置
- * @param {*} newFiber
- * @param {*} lastPlacedIndex
- * @param {*} newIdx
- * @param {*} shouldTrackSideEffects
- */
-function placeChild(newFiber, lastPlacedIndex, newIdx, shouldTrackSideEffects) {
-    newFiber.index = newIdx;
-    if (!shouldTrackSideEffects) {
-        return lastPlacedIndex;
-    }
-    const base = newFiber.base;
-    if (base !== null) {
-        if (base.index < lastPlacedIndex) {
-            return lastPlacedIndex;
-        } else {
-            return base.index;
-        }
-    } else {
-        newFiber.effectTag = PLACEMENT;
-        return lastPlacedIndex;
-    }
-}
-
-/**
- * 将 fiber 链表结构转换成 map 结构
- * @param {*} returnFiber 父 fiber
- * @param {*} currentChildFiber 当前 fiber
- */
-function mapRemainingChildren(returnFiber, currentChildFiber) {
-    const existingChildren = new Map();
-    while (currentChildFiber) {
-        if (currentChildFiber.key !== null) {
-            existingChildren.set(currentChildFiber.key, currentChildFiber);
-        } else {
-            existingChildren.set(currentChildFiber.index, currentChildFiber);
-        }
-        currentChildFiber = currentChildFiber.sibling;
-    }
-    return existingChildren;
-}
-
-/**
  * 协调子元素
  * @param {*} children 子元素数组
  * @param {*} node 真实 DOM
@@ -266,145 +214,52 @@ function reconcileChildren(returnFiber, children) {
 
     let prevFiber = null;
 
-    // fiber 上一次的位置下标
-    let lastPlacedIndex = 0;
+    // 循环子元素，生成链表结构
+    for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        let newFiber = null;
 
-    // 用来循环的下标
-    let newIdx = 0;
-
-    // 用来临时存放 oldFiber 的变量
-    let nextOldFiber = null;
-
-    // 判断初次渲染还是更新的 flag
-    const shouldTrackSideEffects = !!oldFiber;
-
-    // 1、组件更新时，走这个条件分支
-    for (; oldFiber && newIdx < children.length; newIdx++) {
-        const newChild = children[newIdx];
-        if (oldFiber.index > newIdx) {
-            nextOldFiber = oldFiber;
-            oldFiber = null;
-        } else {
-            nextOldFiber = oldFiber.sibling;
-        }
-
-        if (oldFiber === null) {
-            oldFiber = nextOldFiber;
-        }
-
+        // 判断 oldFiber 和 child 是否可以复用
         const sameType =
-            newChild &&
-            oldFiber &&
-            newChild.key === oldFiber.key &&
-            newChild.type === oldFiber.type;
+            oldFiber && child && oldFiber.key === child.key && oldFiber.type === child.type;
 
-        if (!sameType) {
-            break;
-        }
-
-        const newFiber = {
-            type: newChild.type,
-            key: newChild.key,
-            props: newChild.props,
-            return: returnFiber,
-            node: oldFiber.node,
-            base: oldFiber,
-            effectTag: UPDATE,
-        };
-
-        lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx, shouldTrackSideEffects);
-
-        if (prevFiber === null) {
-            returnFiber.child = newFiber;
-        } else {
-            prevFiber.sibling = newFiber;
-        }
-        prevFiber = newFiber;
-
-        oldFiber = nextOldFiber;
-    }
-
-    // 2、如果是循环结束，会走到这个条件分支，则将剩余的 oldFiber 删除
-    if (newIdx === children.length) {
-        while (oldFiber) {
-            deletions.push({
-                ...oldFiber,
-                effectTag: DELETION,
-            });
-            oldFiber = oldFiber.sibling;
-        }
-    }
-
-    // 3、如果 oldFiber 不存在，代表新增元素，可能是初始化，也可能是新插入的元素
-    if (!oldFiber) {
-        for (; newIdx < children.length; newIdx++) {
-            const newChild = children[newIdx];
-            if (!newChild) {
-                continue;
-            }
-            const newFiber = {
-                type: newChild.type,
-                key: newChild.key,
-                props: newChild.props,
-                return: returnFiber,
-                node: null,
-                base: null,
-                effectTag: PLACEMENT,
-            };
-            
-            lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx, shouldTrackSideEffects);
-
-            if (prevFiber === null) {
-                returnFiber.child = newFiber;
-            } else {
-                prevFiber.sibling = newFiber;
-            }
-            prevFiber = newFiber;
-        }
-        return;
-    }
-
-    // 将链表结构转化成 map 结构
-    const existingChildren = mapRemainingChildren(returnFiber, oldFiber);
-    // 4、当 oldFiber 存在并且 oldFiber 不能被复用的时候，会走到这个条件分支
-    for (; newIdx < children.length; newIdx++) {
-        const newChild = children[newIdx];
-        let newFiber = {
-            type: newChild.type,
-            key: newChild.key,
-            props: newChild.props,
-            return: returnFiber,
-        };
-
-        /**
-         * 和第 1 个条件分支不同：
-         *  1 中是一一对比，看是否能够复用 oldFiber
-         *  这里是根据 key(没有 key 使用 index) 从剩余的 oldFiber 中查找出是否有对应的 oldFiber
-         */
-
-        const matchedFiber = existingChildren.get(newChild.key == null ? newIdx : newChild.key);
-
-        // 如果匹配到对应 key / index 的 oldFiber，并且 type 也是相同的，则可以进行复用，更新即可
-        if (matchedFiber && matchedFiber.type === newChild.type) {
+        // 1、如果可以复用，则将 oldFiber 设置为 newFiber 的 base 属性，并将 effectTag 设置为 UPDATE
+        if (sameType) {
             newFiber = {
-                ...newFiber,
-                node: matchedFiber.node,
-                base: matchedFiber,
+                type: child.type,
+                key: child.key,
+                props: child.props,
+                node: oldFiber.node,
+                base: oldFiber,
+                return: returnFiber,
                 effectTag: UPDATE,
             };
-            // 匹配到 oldFiber 之后，则从 map 中移除对应的 fiber，避免重复匹配
-            existingChildren.delete(newChild.key == null ? newIdx : newChild.key);
-        } else {
-            // 没有匹配到的话，则新增 fiber
+        }
+
+        // 2、如果不能复用，则将 newFiber 的 effectTag 属性设置为 PLACEMENT
+        if (!sameType && child) {
             newFiber = {
-                ...newFiber,
+                type: child.type,
+                key: child.key,
+                props: child.props,
                 node: null,
                 base: null,
+                return: returnFiber,
                 effectTag: PLACEMENT,
             };
         }
 
-        lastPlacedIndex = placeChild(newFiber, lastPlacedIndex, newIdx, shouldTrackSideEffects);
+        // 3、如果 oldFiber 存在但是不能复用，则将 oldFiber 的 effectTag 属性设置为 DELETION，
+        //  并添加到 deletions 数组中
+        if (oldFiber && !sameType) {
+            oldFiber.effectTag = DELETION;
+            deletions.push(oldFiber);
+        }
+
+        // oldFiber 后移，找到兄弟节点
+        if (oldFiber) {
+            oldFiber = oldFiber.sibling;
+        }
 
         if (prevFiber === null) {
             returnFiber.child = newFiber;
@@ -412,16 +267,6 @@ function reconcileChildren(returnFiber, children) {
             prevFiber.sibling = newFiber;
         }
         prevFiber = newFiber;
-    }
-
-    // 更新阶段，fiber 操作执行完毕，map 中仍有未被匹配的 oldFiber ，则进行删除
-    if (shouldTrackSideEffects) {
-        existingChildren.forEach(child => {
-            deletions.push({
-                ...child,
-                effectTag: DELETION,
-            });
-        });
     }
 }
 
@@ -463,18 +308,13 @@ function commitWorker(fiber) {
             }
             parentFiber = parentFiber.return;
         }
-        if (fiber.type !== 'TEXT') {
-            console.log('新增', fiber);
-        }
-        // parentNode.appendChild(fiber.node);
-        insertOrAppend(fiber, parentNode);
+        parentNode.appendChild(fiber.node);
     } else if (fiber.node && fiber.effectTag === UPDATE) {
         // 执行属性更新操作
         updateNode(fiber.node, fiber.base.props, fiber.props);
     } else if (fiber.effectTag === DELETION) {
         // 执行删除操作
         commitDeletion(fiber);
-        // !!! 这里要 return 掉，不能执行 child 和 sibling，因为 child 和 sibling 的 effectTag 值并没有修改成 DELETION
         return;
     }
 
@@ -509,13 +349,13 @@ export const useState = init => {
      *
      * !循环 hook 中队列 queue 存储的值，为 state 设置最新的值
      */
-    const oldFiber = wipFunctionFiber.base && wipFunctionFiber.base;
-    const oldHook = oldFiber && oldFiber.hooks[wipFunctionFiber.hookIndex];
+    const oldFiber = wipFunctionFible.base && wipFunctionFible.base;
+    const oldHook = oldFiber && oldFiber.hooks[wipFunctionFible.hookIndex];
     const hook = oldHook
         ? { state: oldHook.state, queue: oldHook.queue }
         : { state: init, queue: [] };
     hook.queue.forEach(i => (hook.state = i));
-    hook.queue = [];
+    hook.queue = [hook.state];
 
     /**
      * 设置 state，将接收到的 aciton push 到队列 queue 中
@@ -541,37 +381,14 @@ export const useState = init => {
     };
 
     /**
-     * 将 hook push 到 wipFunctionFiber 的 hooks 属性中，用于下一次的更新操作。
-     * 并将 wipFunctionFiber 的 hookIndex 后移，执行下一个 useState
+     * 将 hook push 到 wipFunctionFible 的 hooks 属性中，用于下一次的更新操作。
+     * 并将 wipFunctionFible 的 hookIndex 后移，执行下一个 useState
      */
-    wipFunctionFiber.hooks.push(hook);
-    wipFunctionFiber.hookIndex++;
+    wipFunctionFible.hooks.push(hook);
+    wipFunctionFible.hookIndex++;
 
     return [hook.state, setState];
 };
-
-function getHostSibling(fiber) {
-    let sibling = fiber.return.child;
-    while (sibling) {
-        // !!! 这里判断 fiber.index 小于它的兄弟节点 index 即可，因为此时 index 可能不是连续的，不能直接使用 fiber.index + 1 === sibling.index 来判断
-        if (fiber.index < sibling.index && sibling.effectTag === 'UPDATE') {
-            return sibling.node;
-        }
-        sibling = sibling.sibling;
-    }
-
-    return null;
-}
-
-function insertOrAppend(fiber, parentNode) {
-    let before = getHostSibling(fiber);
-    let node = fiber.node;
-    if (before) {
-        parentNode.insertBefore(node, before);
-    } else {
-        parentNode.appendChild(node);
-    }
-}
 
 export default {
     render,

@@ -34,6 +34,7 @@ FunComponent.defaultProps = {
     name: 'function',
 };
 
+// jsx 语法使用
 const App = () => (
     <div className="box border">
         <ClassComp name="Jack" />
@@ -42,6 +43,7 @@ const App = () => (
     </div>
 );
 
+// useState 使用
 const StateApp = () => {
     const [count, setCount] = useState(0);
 
@@ -63,4 +65,88 @@ const StateApp = () => {
     );
 };
 
-ReactDOM.render(<StateApp />, document.getElementById('root'));
+// 查看 diff 过程
+const DiffApp = () => {
+    const [count, setCount] = useState(0);
+
+    return (
+        <div className="box border">
+            <p>count: {count}</p>
+            {count % 2 === 0 ? <div>偶数</div> : <p>奇数</p>}
+            <div>
+                {count % 2 === 0 ? (
+                    <span className="box">even</span>
+                ) : (
+                    <strong className="border">odd</strong>
+                )}
+            </div>
+            {count % 2 === 0 ? (
+                <ul>
+                    <li key="1">1</li>
+                    <li key="2">2</li>
+                    <li key="3">3</li>
+                    <li key="4">4</li>
+                    <li key="5">5</li>
+                </ul>
+            ) : (
+                <ul>
+                    <li key="3">a</li>
+                    <li key="4">b</li>
+                    <li key="5">c</li>
+                </ul>
+            )}
+            <button onClick={() => setCount(count + 1)}>increment</button>
+        </div>
+    );
+};
+
+// 查看使用 index 作为下标的弊端
+const KeyApp = () => {
+    const [count, setCount] = useState(0);
+
+    return (
+        <div className="box border">
+            <p>count: {count}</p>
+            {/* 使用 index 作为 key */}
+            {/* {count % 2 === 0 ? (
+                    <ul>
+                        <li key={0}>a</li>
+                        <p key={1}>b</p>
+                        <span key={2}>c</span>
+                        <section key={3}>d</section>
+                        <div key={4}>e</div>
+                    </ul>
+                ) : (
+                    <ul>
+                        <div key={0}>测试 Key</div>
+                        <li key={1}>a</li>
+                        <p key={2}>b</p>
+                        <span key={3}>c</span>
+                        <section key={4}>d</section>
+                        <div key={5}>e</div>
+                    </ul>
+                )} */}
+            {count % 2 === 0 ? (
+                <ul>
+                    <li key="a">a</li>
+                    <p key="b">b</p>
+                    <span key="c">c</span>
+                    <section key="d">d</section>
+                    <div key="e">e</div>
+                </ul>
+            ) : (
+                <ul>
+                    <div key={0}>测试 Key</div>
+                    <li key="a">a</li>
+                    <p key="b">b</p>
+                    <span key="c">c</span>
+                    <section key="d">d</section>
+                    <div key="e">e</div>
+                </ul>
+            )}
+            <button onClick={() => setCount(count + 1)}>increment</button>
+        </div>
+    );
+};
+
+ReactDOM.render(<DiffApp />, document.getElementById('root'));
