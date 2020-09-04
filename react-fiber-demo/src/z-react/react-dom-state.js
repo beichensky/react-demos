@@ -355,7 +355,7 @@ export const useState = init => {
         ? { state: oldHook.state, queue: oldHook.queue }
         : { state: init, queue: [] };
     hook.queue.forEach(i => (hook.state = i));
-    hook.queue = [hook.state];
+    hook.queue = [];
 
     /**
      * 设置 state，将接收到的 aciton push 到队列 queue 中

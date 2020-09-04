@@ -6,7 +6,7 @@
  */
 export const createElement = (type, config, ...children) => {
     //
-    console.log('type', type, config, children);
+    console.log('React createElement >>> ', type, config, children);
 
     // 设置 key 和 ref 值
     let key = null;

@@ -7,8 +7,8 @@ const render = (vNode, container) => {
     const node = createNode(vNode);
     container.appendChild(node);
 
-    // 
-    console.log('vNode', vNode, container, node);
+    //
+    console.log('ReactDOM render >>> ', vNode, container, node);
 };
 
 /**

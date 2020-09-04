@@ -100,7 +100,7 @@ const DiffApp = () => {
     );
 };
 
-// 查看使用 index 作为下标的弊端
+// 查看使用 index 作为 key 的弊端
 const KeyApp = () => {
     const [count, setCount] = useState(0);
 

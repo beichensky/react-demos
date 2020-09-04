@@ -43,7 +43,7 @@ const App = () => (
         ))}
         <ClassComp name="Jack" />
         <FunComponent name="Lily" />
-        <button onClick={() => alert(123)}>弹出提示</button>
+        <button onClick={() => alert('Hello React')}>弹出提示</button>
     </div>
 );
 
