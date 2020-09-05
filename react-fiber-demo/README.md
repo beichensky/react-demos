@@ -1,4 +1,4 @@
-# Render Fiber 简单实现
+# React Fiber 简单实现
 
 ## 前言
 
@@ -29,9 +29,11 @@
 - 开发者可以通过 `key prop` 来暗示哪些子元素在不同的渲染下能保持稳定
 
   - 不使用 `key` 或使用 `index` 作为 `key` 时，下图会进行 F、B、C、D 节点的更新，并新增 E 节点
+
   ![tree-render](./images/react-diff3.png)
 
   - 使用唯一 `key` 值时，只会新增 F 节点添加到 B 节点之前，B、C、D、E 节点都不会发生更新操作
+  
   ![tree-render](./images/react-diff4.png)
 
 ## `fiber` 思想

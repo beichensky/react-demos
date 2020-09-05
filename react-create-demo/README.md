@@ -66,7 +66,8 @@
   };
   ```
 
-`babel` 只会对标签进行编译，不会对文本进行组装，所以为了将文本节点也转化成虚拟 `DOM` 对象，我们添加了一个 `createTextNode` 函数
+`babel` 只会对标签进行编译，不会对文本进行组装。
+所以为了将文本节点也转化成虚拟 `DOM` 对象，我们添加了一个 `createTextNode` 函数（React 中并没有这么做）。
 
 `createTextNode`
 
@@ -319,4 +320,4 @@ export const createElement = (type, config, ...children) => {
 
 > 至此，React 的 createElement 函数和 ReactDOM 的 render 函数基本实现。
 >
-> 目前只涉及到组件初始化的阶段，后续更新操作可以看我的下一篇文章：**[Render Fiber 简单实现](https://github.com/beichensky/react-demos/blob/master/react-fiber-demo/README.md)**
+> 目前只涉及到组件初始化的阶段，后续更新操作可以看我的下一篇文章：**[React Fiber 简单实现](https://github.com/beichensky/react-demos/blob/master/react-fiber-demo/README.md)**
