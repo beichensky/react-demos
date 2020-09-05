@@ -1,68 +1,322 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# React CreateElement 实现
 
-## Available Scripts
+在 `create-react-app` 脚手架中，使用 `jsx` 语法会被编译成抽象语法树，放入 `createElement` 中作为参数执行。
 
-In the project directory, you can run:
+所以我们需要在 `createElement` 函数中创建虚拟 `DOM` 并返回
 
-### `yarn start`
+下面我们就一起来看看如何编写 `createElement` 函数以及 `render` 函数
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## createElement
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+在 `react.js` 中创建 `createElement`，`babel` 进行 `compile` 之后会自动调用此方法
 
-### `yarn test`
+- 创建 `React.createElement` 函数，会接受三个参数
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+  - type：节点类型
+  - config: 节点属性
+  - children：子节点集合
 
-### `yarn build`
+- 返回一个组合之后的虚拟 `DOM`
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  ```js
+  export const createElement = (type, config, ...children) => {
+    //
+    console.log("React createElement >>> ", type, config, children);
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+    // 设置 key 和 ref 值
+    let key = null;
+    let ref = null;
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    // 设置 props 属性值
+    const props = {};
+    if (config) {
+      if (config.key) {
+        key = config.key;
+        delete config.key;
+      }
+      if (config.ref) {
+        ref = config.ref;
+        delete config.key;
+      }
+      delete config.__self;
+      delete config.__source;
+    }
 
-### `yarn eject`
+    if (type && type.defaultProps) {
+      const { defaultProps } = type;
+      Object.keys(defaultProps).forEach(propName => {
+        if (!props[propName] && defaultProps[propName]) {
+          props[propName] = defaultProps[propName];
+        }
+      });
+    }
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+    // 这里应该是直接 props.children = children，
+    // 但是我们为了简单一点，给文本节点也转换成 vNode对象，React 源码中并没有这么做
+    props.children = children.map(child =>
+      typeof child === "object" ? child : createTextNode(child)
+    );
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    return {
+      key,
+      ref,
+      type,
+      props
+    };
+  };
+  ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+`babel` 只会对标签进行编译，不会对文本进行组装，所以为了将文本节点也转化成虚拟 `DOM` 对象，我们添加了一个 `createTextNode` 函数
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+`createTextNode`
 
-## Learn More
+```js
+function createTextNode(text) {
+  return {
+    type: "TEXT",
+    props: {
+      children: [],
+      nodeValue: text
+    }
+  };
+}
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## `render` 函数
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+处理 `dom` 渲染
 
-### Code Splitting
+```js
+const render = (vNode, container) => {
+  const node = createNode(vNode);
+  container.appendChild(node);
+  console.log("ReactDOM render >>> ", vNode, container, node);
+};
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+创建真实 `DOM：createNode`
 
-### Analyzing the Bundle Size
+```js
+function createNode(vNode) {
+  let node = null;
+  const { type, props } = vNode;
+  if (type === "TEXT") {
+    node = document.createTextNode("");
+  } else if (typeof type === "string") {
+    node = document.createElement(type);
+  } else {
+    node = document.createDocumentFragment();
+  }
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+  updateNode(node, props);
 
-### Making a Progressive Web App
+  return node;
+}
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+为真实 `DOM` 节点设置属性：`updateNode`
 
-### Advanced Configuration
+```js
+/**
+ * 更新 DOM 属性
+ * @param {*} node 真实 DOM
+ * @param {*} nextProps 节点属性
+ */
+function updateNode(node, nextProps) {
+  Object.keys(nextProps)
+    .filter(propName => propName !== "children")
+    .forEach(propName => {
+      if (propName.startsWith("on")) {
+        const eventName = propName.slice(2).toLowerCase();
+        node.addEventListener(eventName, nextProps[propName]);
+      } else {
+        node[propName] = nextProps[propName];
+      }
+    });
+}
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
+此时代码基本已经完成，但是界面仍然没有内容展示出来。因为还没有对子元素进行渲染。
 
-### Deployment
+## 渲染子元素
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
+则此时在 `createNode` 的时候，对子元素进行渲染即可
 
-### `yarn build` fails to minify
+```js
+function createNode(vNode) {
+  let node = null;
+  const { type, props } = vNode;
+  if (type === "TEXT") {
+    node = document.createTextNode("");
+  } else if (typeof type === "string") {
+    node = document.createElement(type);
+  } else {
+    node = document.createDocumentFragment();
+  }
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+  // !新增代码
+  if (props.children) {
+    reconcileChildren(props.children, node);
+  }
+
+  updateNode(node, props);
+
+  return node;
+}
+```
+
+新增 `reconcileChildren` 函数对子元素进行循环渲染
+
+```js
+function reconcileChildren(children, node) {
+  children.forEach(child => {
+    if (Array.isArray(child)) {
+      reconcileChildren(child, node);
+    } else {
+      render(child, node);
+    }
+  });
+}
+```
+
+## class Component & Function Component
+
+此时只是完成了原始标签的渲染，函数组件以及类组件我们还没有进行操作。
+
+1. 声明一个 `Component` 类作为类组件的父类。
+2. 在 `createNode` 中进行判断，分别判断是类组件还是函数组件
+3. 由于 `class` 也是由 `function` 实现，因此无法使用 `typeof` 直接区分函数组件和类组件，需要给类组件添加一个原型属性，作为区分
+4. `Component.prototype.isReactComponent = {};`
+
+在 `react.js` 中新增 `Component` 类
+
+```js
+/**
+ * 类组件声明
+ * @param {*} props 组件属性
+ */
+export function Component(props) {
+  this.props = props;
+}
+
+// 设置 isReactComponent 属性，用来区分类组件和函数组件
+Component.prototype.isReactComponent = {};
+```
+
+`react-dom.js` 中
+
+在 `createNode` 函数中添加判断条件
+
+```js
+function createNode(vNode) {
+  let node = null;
+  const { type, props } = vNode;
+  if (type === "TEXT") {
+    node = document.createTextNode("");
+  } else if (typeof type === "string") {
+    node = document.createElement(type);
+  }
+  // ! 新增代码
+  else if (typeof type === "function") {
+    node = type.prototype.isReactComponent
+      ? updateClassComponent(vNode)
+      : updateFunctionComponent(vNode);
+  } else {
+    node = document.createDocumentFragment();
+  }
+
+  if (props.children) {
+    reconcileChildren(props.children, node);
+  }
+
+  updateNode(node, props);
+
+  return node;
+}
+```
+
+新增 `updateClassComponent` 和 `updateFunctionComponent` 函数，返回类组件和函数组件的真实 `DOM`
+
+```js
+/**
+ * 将类组件转化成真实 DOM
+ * @param {*} vNode 虚拟 DOM
+ */
+function updateClassComponent(vNode) {
+  const { type: Type, props } = vNode;
+  vNode = new Type(props).render();
+  return createNode(vNode);
+}
+
+/**
+ * 将函数组件 转化成真实 DOM
+ * @param {*} vNode 虚拟 DOM
+ */
+function updateFunctionComponent(vNode) {
+  const { type, props } = vNode;
+  vNode = type(props);
+  return createNode(vNode);
+}
+```
+
+## 设置默认属性 `defaultProps`
+
+`React` 组件是可以设置默认属性值的，所以这里我们也添加这个功能
+
+修改 `react.js` 中的 `createElement` 函数
+
+```js
+export const createElement = (type, config, ...children) => {
+  //
+  console.log("React createElement >>> ", type, config, children);
+
+  // 设置 key 和 ref 值
+  let key = null;
+  let ref = null;
+
+  // 设置 props 属性值
+  const props = {};
+  if (config) {
+    if (config.key) {
+      key = config.key;
+      delete config.key;
+    }
+    if (config.ref) {
+      ref = config.ref;
+      delete config.key;
+    }
+    delete config.__self;
+    delete config.__source;
+
+    Object.keys(config).forEach(propName => {
+      props[propName] = config[propName];
+    });
+  }
+
+  if (type && type.defaultProps) {
+    const { defaultProps } = type;
+    Object.keys(defaultProps).forEach(propName => {
+      if (!props[propName] && defaultProps[propName]) {
+        props[propName] = defaultProps[propName];
+      }
+    });
+  }
+
+  // 这里应该是直接 props.children = children，
+  // 但是我们为了简单一点，给文本节点也转换成 vNode对象，React 源码中并没有这么做
+  props.children = children.map(child =>
+    typeof child === "object" ? child : createTextNode(child)
+  );
+
+  return {
+    key,
+    ref,
+    type,
+    props
+  };
+};
+```
+
+> 至此，React 的 createElement 函数和 ReactDOM 的 render 函数基本实现。
+>
+> 目前只涉及到组件初始化的阶段，后续更新操作可以看我的下一篇文章：**[Render Fiber 简单实现](https://github.com/beichensky/react-demos/blob/master/react-fiber-demo/README.md)**
