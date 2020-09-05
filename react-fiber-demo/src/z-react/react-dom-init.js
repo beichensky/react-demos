@@ -12,7 +12,7 @@
  */
 
 // 下一个将被执行的 fiber
-let nextUitWork = null;
+let nextUnitWork = null;
 // 根 fiber
 let wipRoot = null;
 
@@ -32,7 +32,7 @@ export const render = (vNode, container) => {
         sibling: null,
     };
 
-    nextUitWork = wipRoot;
+    nextUnitWork = wipRoot;
 };
 
 window.requestIdleCallback(workLoop);
@@ -43,12 +43,12 @@ window.requestIdleCallback(workLoop);
  */
 function workLoop(deadLine) {
     // 有 fiber 需要执行并且浏览器处于空闲状态时，执行 fiber 任务
-    while (nextUitWork && deadLine.timeRemaining() > 0) {
-        nextUitWork = perforUnitOfWork(nextUitWork);
+    while (nextUnitWork && deadLine.timeRemaining() > 0) {
+        nextUnitWork = perforUnitOfWork(nextUnitWork);
     }
 
     // 已经没有 fiber 任务需要执行了
-    if (nextUitWork == null && wipRoot) {
+    if (nextUnitWork == null && wipRoot) {
         // 提交 Root Fiber 更新
         commitRoot();
     }

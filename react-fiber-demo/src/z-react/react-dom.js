@@ -25,7 +25,7 @@ const DELETION = 'DELETION'; // 删除
  */
 
 // 下一个将被执行的 fiber
-let nextUitWork = null;
+let nextUnitWork = null;
 // 根 fiber
 let wipRoot = null;
 
@@ -52,7 +52,7 @@ export const render = (vNode, container) => {
         sibling: null,
     };
 
-    nextUitWork = wipRoot;
+    nextUnitWork = wipRoot;
 };
 
 window.requestIdleCallback(workLoop);
@@ -63,12 +63,12 @@ window.requestIdleCallback(workLoop);
  */
 function workLoop(deadLine) {
     // 有 fiber 需要执行并且浏览器处于空闲状态时，执行 fiber 任务
-    while (nextUitWork && deadLine.timeRemaining() > 0) {
-        nextUitWork = perforUnitOfWork(nextUitWork);
+    while (nextUnitWork && deadLine.timeRemaining() > 0) {
+        nextUnitWork = perforUnitOfWork(nextUnitWork);
     }
 
     // 已经没有 fiber 任务需要执行了
-    if (nextUitWork === null && wipRoot) {
+    if (nextUnitWork === null && wipRoot) {
         // 提交 Root Fiber 更新
         commitRoot();
     }
@@ -220,6 +220,7 @@ function updateNode(node, prevProps, nextProps) {
  * @param {*} shouldTrackSideEffects
  */
 function placeChild(newFiber, lastPlacedIndex, newIdx, shouldTrackSideEffects) {
+    // 将 newFiber 在当前层级的位置设置到 newFiber 的 index 属性上
     newFiber.index = newIdx;
     if (!shouldTrackSideEffects) {
         return lastPlacedIndex;
@@ -520,7 +521,7 @@ export const useState = init => {
     /**
      * 设置 state，将接收到的 aciton push 到队列 queue 中
      *
-     * 为 wipRoot 赋值，并将 wipRoot 赋值给 nextUitWork，启动 fiber 任务
+     * 为 wipRoot 赋值，并将 wipRoot 赋值给 nextUnitWork，启动 fiber 任务
      */
     const setState = action => {
         // 若新的 action 和 上一次的 state 相同，则无需更新
@@ -536,7 +537,7 @@ export const useState = init => {
             node: currentRootFiber.node,
             base: currentRootFiber,
         };
-        nextUitWork = wipRoot;
+        nextUnitWork = wipRoot;
         deletions = [];
     };
 
