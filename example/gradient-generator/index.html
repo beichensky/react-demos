@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>渐变色生成器</title>
+    
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        .App {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            align-content: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .App > .main {
+            margin: auto;
+        }
+
+        .main > .inputGroup {
+            margin: 12px;
+            margin-top: 20px;
+        }
+
+        .inputGroup > label {
+            vertical-align: middle;
+        }
+
+        .inputGroup > input {
+            border: none;
+            width: 30px;
+            height: 30px;
+            margin-left: 12px;
+            background: transparent;
+            outline: none;
+            vertical-align: middle;
+        }
+
+        .degInput {
+            height: 24px;
+            width: 160px;
+            padding-left: 6px;
+            border: none;
+            outline: none;
+            border: 1px solid #7EB5EC;
+        }
+
+        .operateBtn {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #ffd83b;
+            box-shadow: 0 4px 12px rgba(80, 64, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .addColorBtn {
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script src="../../libs/react.min.js"></script>
+    <script src="../../libs/react-dom.min.js"></script>
+    <script src="../../libs/babel.min.js"></script>
+    <script type="text/jsx">
+
+        const { useState, useCallback, useReducer, useMemo } = React;
+
+        let id = 3;
+
+        /**
+         * 初始颜色值
+         */
+        const initColors = [
+            { id: 1, value: '#00F260' },
+            { id: 2, value: '#0575E6' },
+        ];
+
+        const colorReducer = (state, { type, payload }) => {
+            switch (type) {
+                case 'ADD':
+                    return [...state, { id: id++, value: payload }];
+                case 'CHANGE':
+                    const { color, index } = payload;
+                    const newColor = { ...state[index], value: color };
+                    state.splice(index, 1, newColor);
+                    return [...state];
+                case 'RESET':
+                    return [...initColors];
+                default:
+                    return state;
+            }
+        };
+
+        function App() {
+            const [deg, setDeg] = useState(45);
+            const [colors, dispatch] = useReducer(colorReducer, initColors);
+
+            const changeColor = useCallback(
+                (e, index) => {
+                    dispatch({ type: 'CHANGE', payload: { index, color: e.target.value } });
+                },
+                [dispatch]
+            );
+
+            const resetColor = useCallback(() => {
+                dispatch({ type: 'RESET' });
+                setDeg(45);
+            }, [dispatch]);
+
+            const addColor = useCallback(() => {
+                dispatch({ type: 'ADD', payload: '#ffffff' });
+            }, [dispatch]);
+
+            const gradientColor = useMemo(() => colors.map(color => color.value).join(','), [colors]);
+
+            return (
+                <div
+                    className="App"
+                    style={{ background: `linear-gradient(${deg || 0}deg, ${gradientColor})` }}
+                >
+                    <main className="main">
+                        <div>
+                            <label>切换渐变角度：</label>
+                            <input
+                                className="degInput"
+                                type="number"
+                                value={deg}
+                                onChange={e => setDeg(e.target.value)}
+                                placeholder="请输入渐变角度"
+                            />
+                        </div>
+                        {colors.map(({ id, value }, index) => (
+                            <div className="inputGroup" key={id}>
+                                <label>请选择第 {index + 1} 个颜色</label>
+                                <input type="color" value={value} onChange={e => changeColor(e, index)} />
+                            </div>
+                        ))}
+                        <button className="operateBtn addColorBtn" onClick={addColor}>
+                            新增颜色
+                        </button>
+                        <button className="operateBtn" onClick={resetColor}>
+                            重置颜色
+                        </button>
+                    </main>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, root);
+    </script>
+</body>
+
+</html>
