@@ -28,7 +28,7 @@
          *      5、希望组件的每次更新都执行 useEffect，可以不写依赖项
          */
 
-        const { useState, useEffect, useReducer } = React;
+        const { useState, useEffect, useReducer, useLayoutEffect } = React;
 
         const App = () => {
             // 
@@ -45,11 +45,13 @@
             }, 0)
 
             useEffect(() => {
+                console.log('useEffect')
                 // 执行异步操作获取数据
                 setCount(10);
             }, [])
 
-            useEffect(() => {
+            useLayoutEffect(() => {
+                console.log('useLayoutEffect')
                 // 绑定事件
                 const handleClick = () => {
                     alert(count);

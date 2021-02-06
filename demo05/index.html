@@ -27,7 +27,7 @@
          * props 中会包含一个 children 属性，标签内的所有内容都会被存放到 children 中。
          * 可以是标签、组件或者文本
          */
-        class HelloClass extends React.Component {
+        class ClassComponent extends React.Component {
             render() {
                 return (
                     <div className="box">
@@ -45,7 +45,7 @@
          * props 中会包含一个 children 属性，标签内的所有内容都会被存放到 children 中。
          * 可以是标签、组件或者文本
          */
-        const HelloFunction = (props) => {
+        const FunctionComponent = (props) => {
             return (
                 <div className="box">
                     <h1>Function Component</h1>
@@ -58,13 +58,13 @@
         const App = () => (
             <div>
                 <h1>App</h1>
-                <HelloClass msg="App 传递过来的 msg 信息">
+                <ClassComponent msg="App 传递过来的 msg 信息">
                     App 传递过来的 children 是文本
-                </HelloClass>
-                <HelloFunction  msg="App 传递过来的 msg 信息">
-                    App 传递过来的 children 是 HelloClass 组件：
-                    <HelloClass msg="Function Component 传递过来的 msg 信息"/>
-                </HelloFunction>
+                </ClassComponent>
+                <FunctionComponent  msg="App 传递过来的 msg 信息">
+                    App 传递过来的 children 是 ClassComponent 组件：
+                    <ClassComponent msg="Function Component 传递过来的 msg 信息"/>
+                </FunctionComponent>
             </div>
         );
 

@@ -35,7 +35,7 @@
         const UserContext = React.createContext();
         const { Provider, Consumer } = UserContext;
 
-        class ComponentA extends React.Component {
+        class ClassComponent extends React.Component {
             render() {
                 return (
                     <div className="box">
@@ -48,7 +48,7 @@
             }
         }
 
-        const ComponentB = () => {
+        const FunctionComponent = () => {
             const user = useContext(UserContext);
             return (
                 <div className="box">
@@ -70,8 +70,8 @@
                         value={user.name}
                         onChange={(e) => setUser({ name: e.target.value })}
                     />
-                    <ComponentA />
-                    <ComponentB />
+                    <ClassComponent />
+                    <FunctionComponent />
                 </Provider>
             );
         }

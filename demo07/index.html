@@ -20,7 +20,7 @@
             }
 
             handleClick = () => {
-                // 1、同一事件内的多次 setState 会被合并，最终的结果 count 只会 + 1
+                // 1、同一 React 事件内的多次 setState 会被合并，最终的结果 count 只会 + 1
 
                 this.setState({
                     count: this.state.count + 2

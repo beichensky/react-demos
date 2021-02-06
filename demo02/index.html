@@ -29,6 +29,11 @@
             alert('Hello React!')
         }
 
+        const a = 1;
+        const b = 2;
+        const showModal = true;
+        const loadingStatus = 'no-more';
+
         const jsx = (
             <div>
 
@@ -36,16 +41,25 @@
                 <h1 style={{ fontSize: 24, color: 'blue' }}>Hello React</h1>
 
                 {/* 逻辑运算符 */}
-                { 0 == false && <section>等于</section> }
+                { a === b && <section>等于</section> }
 
                 {/* 三目运算符 */}
-                { 0 === false ? <section>全等</section> : <p>不全等</p> }
+                { showModal ? <section>弹窗组件</section> : null }
 
                 {/* 列表循环生成新数组，数组内元素会被直接渲染到界面，
                     每个节点可以给一个 key 值，方便 react 在更新时的 diff 对比 */}
                 <ul>
                     { todoList.map(todo => <li key={ todo }>{ todo }</li>) }
                 </ul>
+                <p>
+                    {
+                        {
+                            'loading': '加载中。。。。',
+                            'refreshing': '点击刷新重试！',
+                            'no-more': '没有更多了'
+                        }[loadingStatus] /** loadingStatus 是 `loading`、`refreshing`、`no-more`  其中一种状态 **/
+                    }
+                </p>
 
                 {/* 添加事件 */}
                 <button onClick={ handleAlert }>弹出提示</button>
