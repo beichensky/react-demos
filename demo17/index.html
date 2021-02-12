@@ -70,11 +70,19 @@
     <script src="../libs/babel.min.js"></script>
     <script type="text/jsx">
 
+        /**
+         * 通过 createPortal API，将 Modal 组件的真实节点挂载到新建的 div 元素上去
+         * 虽然在 React 树中，Modal 组件仍然在 App 组件中，但是在界面上，Modal 节点其实是挂载在了新的 div 节点上
+         */
+
         const { useEffect, useState } = React;
         const { createPortal } = ReactDOM;
 
         const modalRoot = document.createElement('div');
 
+        /**
+         * Modal: 弹窗组件
+         */
         function Modal({ children, onCancel }) {
 
             useEffect(() => {

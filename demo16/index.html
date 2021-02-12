@@ -21,7 +21,7 @@
     <script type="text/jsx">
 
         /**
-         * useImperativeHandle：用来在父组件调用子组件中的状态或者方法
+         * useImperativeHandle: 用来在父组件调用子组件中的状态或者方法
          *     API: useImperativeHandle(ref, createHandle, [deps])
          *     第一个参数是 ref 值，可以通过属性传入，也可以配合 forwardRef 使用
          *     第二个参数是一个函数，返回一个对象，对象中的属性都会被挂载到第一个参数 ref 的 current 属性上
@@ -76,7 +76,7 @@
 
             return (
                 <div className="box">
-                    <h2>函数组件</h2>
+                    <h2>子组件</h2>
                     <section>
                         <label>用户名：</label>
                         <input value={value} placeholder="请输入用户名" onChange={e => setValue(e.target.value)} />

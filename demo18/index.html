@@ -28,7 +28,7 @@
 
         const { Fragment, PureComponent, memo, useState, Component } = React;
 
-        class PureComponentA extends PureComponent {
+        class ClassComponent extends PureComponent {
 
             render() {
                 console.log('PureComponent render');
@@ -41,7 +41,7 @@
             }
         }
 
-        const MemoComponentB = memo((props) => {
+        const FunctionComponent = memo((props) => {
             console.log('memo function render');
 
             return (
@@ -61,8 +61,8 @@
                     <div>
                         <button onClick={ () => setCount(count + 1) }>increment count</button> | {' '}
                         <button onClick={ () => setNum(num + 1) }>increment num</button>
-                        <PureComponentA count={ count }/>
-                        <MemoComponentB num={ num }/>
+                        <ClassComponent count={ count }/>
+                        <FunctionComponent num={ num }/>
                     </div>
                 </Fragment>
             );
